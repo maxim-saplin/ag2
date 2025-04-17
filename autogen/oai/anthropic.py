@@ -112,6 +112,7 @@ ANTHROPIC_PRICING_1k = {
 @register_llm_config
 class AnthropicLLMConfigEntry(LLMConfigEntry):
     api_type: Literal["anthropic"] = "anthropic"
+    timeout: Optional[int] = Field(default=None, ge=1)
     temperature: float = Field(default=1.0, ge=0.0, le=1.0)
     top_k: Optional[int] = Field(default=None, ge=1)
     top_p: Optional[float] = Field(default=None, ge=0.0, le=1.0)
@@ -213,10 +214,13 @@ class AnthropicClient:
             params, "temperature", (float, int), False, 1.0, (0.0, 1.0), None
         )
         anthropic_params["max_tokens"] = validate_parameter(params, "max_tokens", int, False, 4096, (1, None), None)
+        anthropic_params["timeout"] = validate_parameter(params, "timeout", int, True, None, (1, None), None)
         anthropic_params["top_k"] = validate_parameter(params, "top_k", int, True, None, (1, None), None)
         anthropic_params["top_p"] = validate_parameter(params, "top_p", (float, int), True, None, (0.0, 1.0), None)
         anthropic_params["stop_sequences"] = validate_parameter(params, "stop_sequences", list, True, None, None, None)
         anthropic_params["stream"] = validate_parameter(params, "stream", bool, False, False, None, None)
+        if "thinking" in params:
+            anthropic_params["thinking"] = params["thinking"]
 
         if anthropic_params["stream"]:
             warnings.warn(
